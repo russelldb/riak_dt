@@ -59,7 +59,7 @@
 -define(RIAK_DT_CRDTS, [riak_dt_disable_flag, riak_dt_emcntr,
     riak_dt_enable_flag, riak_dt_gcounter, riak_dt_gset, riak_dt_lwwreg,
     riak_dt_map, riak_dt_od_flag, riak_dt_oe_flag, riak_dt_orset,
-    riak_dt_orswot, riak_dt_pncounter, riak_dt_vclock]).
+    riak_dt_orswot, riak_dt_pncounter, riak_dt_vclock, riak_dt_mvreg]).
 
 -ifdef(EQC).
 % Extra callbacks for any crdt_statem_eqc tests
