@@ -22,6 +22,10 @@
 
 -module(riak_dt).
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 -export([to_binary/1, from_binary/1, is_riak_dt/1]).
 -export_type([actor/0, dot/0, crdt/0, context/0]).
 
@@ -81,3 +85,10 @@ from_binary(Binary) ->
 -spec is_riak_dt(term()) -> boolean().
 is_riak_dt(Term) ->
     is_atom(Term) and lists:member(Term, ?RIAK_DT_CRDTS).
+
+-ifdef(TEST).
+is_riak_dt_test() ->
+    ?assertEqual(true, is_riak_dt(riak_dt_pncounter)),
+    ?assertEqual(false, is_riak_dt(whatever)).
+
+-endif.
