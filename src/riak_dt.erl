@@ -22,7 +22,7 @@
 
 -module(riak_dt).
 
--export([to_binary/1, from_binary/1]).
+-export([to_binary/1, from_binary/1, is_riak_dt/1]).
 -export_type([actor/0, dot/0, crdt/0, context/0]).
 
 -type crdt() :: term().
@@ -52,6 +52,11 @@
 -callback stat(atom(), crdt()) -> number() | undefined.
 -callback is_operation(term()) -> boolean().
 
+-define(RIAK_DT_CRDTS, [riak_dt_disable_flag, riak_dt_emcntr,
+    riak_dt_enable_flag, riak_dt_gcounter, riak_dt_gset, riak_dt_lwwreg,
+    riak_dt_map, riak_dt_od_flag, riak_dt_oe_flag, riak_dt_orset,
+    riak_dt_orswot, riak_dt_pncounter, riak_dt_vclock]).
+
 -ifdef(EQC).
 % Extra callbacks for any crdt_statem_eqc tests
 
@@ -71,3 +76,8 @@ to_binary(Term) ->
 -spec from_binary(binary()) -> crdt().
 from_binary(Binary) ->
     binary_to_term(Binary).
+
+%%  @doc checks that a given atom is a riak_dt CRDT.
+-spec is_riak_dt(term()) -> boolean().
+is_riak_dt(Term) ->
+    is_atom(Term) and lists:member(Term, ?RIAK_DT_CRDTS).
