@@ -127,6 +127,19 @@ stat(max_element_size, GSet) ->
       end, 0, GSet);
 stat(_, _) -> undefined.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        {add_all, Elems} ->
+            is_list(Elems);
+        {add, _} ->
+            true;
+        _ ->
+            false
+    end.
+
 
 %% ===================================================================
 %% EUnit tests
@@ -178,5 +191,15 @@ eqc_state_value(Dict) ->
     sets:to_list(S).
 
 -endif.
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({add, 50})),
+    ?assertEqual(true, is_operation({add, atom})),
+    ?assertEqual(true, is_operation({add_all, [50, atom, 60]})),
+    ?assertEqual(false, is_operation({add_all, not_a_list})),
+    ?assertEqual(false, is_operation(increment)),
+    ?assertEqual(false, is_operation({decrement, 50})),
+    ?assertEqual(false, is_operation(decrement)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 
 -endif.

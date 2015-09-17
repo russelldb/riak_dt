@@ -144,6 +144,19 @@ to_binary(LWWReg) ->
 from_binary(<<?TAG:8/integer, ?V1_VERS:8/integer, Bin/binary>>) ->
     riak_dt:from_binary(Bin).
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        {assign, _} ->
+            true;
+        {assign, _, Number} ->
+            (is_integer(Number) and (Number >= 0));
+        _ ->
+            false
+    end.
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
@@ -246,4 +259,11 @@ stat_test() ->
     ?assertEqual([{value_size, 15}], stats(LWW1)),
     ?assertEqual(15, stat(value_size, LWW1)),
     ?assertEqual(undefined, stat(actor_count, LWW1)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({assign, value})),
+    ?assertEqual(true, is_operation({assign, something, 20})),
+    ?assertEqual(false, is_operation({assign, something, some_value})),
+    ?assertEqual(false, is_operation({add, atom})),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 -endif.

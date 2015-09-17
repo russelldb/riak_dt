@@ -445,6 +445,9 @@ to_binary(S) ->
 from_binary(<<?TAG:8/integer, ?V1_VERS:8/integer, B/binary>>) ->
     riak_dt:from_binary(B).
 
+is_operation(Operation) ->
+    riak_dt_orset:is_operation(Operation).
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================

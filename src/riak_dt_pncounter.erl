@@ -251,6 +251,24 @@ decrement_by(Decrement, Actor, PNCnt) ->
             [{Actor,Inc,Dec+Decrement}|ModPNCnt]
     end.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case riak_dt_gcounter:is_operation(Operation) of
+        true ->
+            true;
+        false ->
+            case Operation of
+                decrement ->
+                    true;
+                {decrement, Number} ->
+                    is_integer(Number) and (Number >= 0);
+                _ ->
+                    false
+            end
+    end.
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
@@ -418,4 +436,11 @@ stat_test() ->
     ?assertEqual([{actor_count, 0}], stats(PN)),
     ?assertEqual(4, stat(actor_count, PN4)),
     ?assertEqual(undefined, stat(max_dot_length, PN4)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({increment, 50})),
+    ?assertEqual(true, is_operation(increment)),
+    ?assertEqual(true, is_operation({decrement, 50})),
+    ?assertEqual(true, is_operation(decrement)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 -endif.

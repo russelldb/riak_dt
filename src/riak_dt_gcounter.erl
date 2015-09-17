@@ -137,6 +137,19 @@ to_binary(GCnt) ->
 from_binary(<<?TAG:8/integer, ?V1_VERS:8/integer, EntriesBin/binary>>) ->
     binary_to_term(EntriesBin).
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        increment ->
+            true;
+        {increment, Number} ->
+            is_integer(Number) and (Number >= 0);
+        _ ->
+            false
+    end.
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
@@ -262,7 +275,7 @@ lots_of_actors_test() ->
                              ActorLen = crypto:rand_uniform(1, 1000),
                              Actor = crypto:rand_bytes(ActorLen),
                              Cnt = crypto:rand_uniform(1, 10000),
-                             {ok, Cnt2} =riak_dt_gcounter:update({increment, Cnt}, Actor, GCnt),
+                             {ok, Cnt2} = riak_dt_gcounter:update({increment, Cnt}, Actor, GCnt),
                              Cnt2
                      end,
                      new(),
@@ -279,5 +292,12 @@ stat_test() ->
     ?assertEqual([{actor_count, 3}], stats(GC3)),
     ?assertEqual(3, stat(actor_count, GC3)),
     ?assertEqual(undefined, stat(field_count, GC3)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({increment, 50})),
+    ?assertEqual(true, is_operation(increment)),
+    ?assertEqual(false, is_operation({decrement, 50})),
+    ?assertEqual(false, is_operation(decrement)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 
 -endif.

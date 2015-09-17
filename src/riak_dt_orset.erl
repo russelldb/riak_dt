@@ -244,6 +244,35 @@ minimum_tokens(Tokens) ->
             not Removed
         end, Tokens).
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        {add_all, Elems} ->
+            is_list(Elems);
+        {add, _} ->
+            true;
+        {remove_all, Elems} ->
+            is_list(Elems);
+        {remove, Number} ->
+            is_integer(Number);
+        {update, UpdatesList} ->
+            case is_list(UpdatesList) of
+                true ->
+                    F = fun(E, A) -> case A of
+                                         true -> is_operation(E);
+                                         false -> false
+                                     end
+                    end,
+                    lists:foldl(F, true, UpdatesList);
+                false ->
+                    false
+            end;
+        _ ->
+            false
+    end.
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
@@ -358,6 +387,24 @@ eqc_state_value({_Cnt, Dict}) ->
     Remaining = sets:subtract(A, R),
     Values = [ Elem || {Elem, _X} <- sets:to_list(Remaining)],
     lists:usort(Values).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({update, [{add, 50}, {add, atom},
+        {add_all, [50, atom, 60]}, {remove, 50}, {remove, atom}, {remove_all, [50, atom, 60]}]})),
+    ?assertEqual(false, is_operation({update, [{add, 50}, {add, atom},
+        {add_all, [50, atom, 60]}, {remove, 50}, {remove, atom}, {remove_all, not_a_list}]})),
+    ?assertEqual(true, is_operation({add, 50})),
+    ?assertEqual(true, is_operation({add, atom})),
+    ?assertEqual(true, is_operation({add_all, [50, atom, 60]})),
+    ?assertEqual(false, is_operation({add_all, not_a_list})),
+    ?assertEqual(true, is_operation({remove, 50})),
+    ?assertEqual(true, is_operation({remove, atom})),
+    ?assertEqual(true, is_operation({remove_all, [50, atom, 60]})),
+    ?assertEqual(false, is_operation({remove_all, not_a_list})),
+    ?assertEqual(false, is_operation(increment)),
+    ?assertEqual(false, is_operation({decrement, 50})),
+    ?assertEqual(false, is_operation(decrement)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 
 -endif.
 

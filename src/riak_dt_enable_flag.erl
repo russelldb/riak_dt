@@ -104,6 +104,16 @@ flag_or(_, on) ->
 flag_or(off, off) ->
     off.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        enable ->
+            true;
+        _ ->
+            false
+    end.
 
 %% ===================================================================
 %% EUnit tests
@@ -170,4 +180,10 @@ stat_test() ->
     ?assertEqual([], stats(F1)),
     ?assertEqual(undefined, stat(actor_count, F1)),
     ?assertEqual(undefined, stat(max_dot_length, F1)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation(enable)),
+    ?assertEqual(false, is_operation(disable)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
+-endif.
 -endif.

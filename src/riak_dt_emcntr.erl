@@ -235,6 +235,12 @@ to_binary(Cntr) ->
 from_binary(<<?TAG:8/integer, ?V1_VERS:8/integer, Bin/binary>>) ->
     binary_to_term(Bin).
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    riak_dt_pncounter:is_operation(Operation).
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================

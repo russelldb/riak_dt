@@ -671,10 +671,57 @@ from_binary(<<?TAG:8/integer, ?V1_VERS:8/integer, B/binary>>) ->
     riak_dt:from_binary(B).
 
 
+%% @doc The following operations verify
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        {update, List} ->
+            case is_list(List) of
+                true ->
+                    F = fun(E, A) -> case A of
+                                         true -> check_operation(E);
+                                         false -> false
+                                     end
+                    end,
+                    lists:foldl(F, true, List);
+                false ->
+                    false
+            end;
+        _ ->
+            false
+    end.
+
+-spec check_operation(term()) -> boolean().
+check_operation(Op) ->
+    case Op of
+        {remove, {_, CRDTModule}} ->
+            riak_dt:is_riak_dt(CRDTModule);
+        {update, {_, CRDTModule}, CrdtOp} ->
+            is_crdt_op(CRDTModule, CrdtOp);
+        _ ->
+            false
+    end.
+
+-spec is_crdt_op(atom(), term()) -> boolean().
+is_crdt_op(CRDTModule, Op) ->
+    riak_dt:is_riak_dt(CRDTModule) and CRDTModule:is_operation(Op).
+
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
 -ifdef(TEST).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({update, [{update, {'X', riak_dt_orswot}, {add, 0}}]})),
+    ?assertEqual(true, is_operation({update, [{update, {c, riak_dt_emcntr},
+        increment},
+        {update, {s, riak_dt_orswot}, {add, <<"A">>}},
+        {update, {m, riak_dt_map}, {update, [{update, {ss, riak_dt_orswot}, {add, 0}}]}},
+        {update, {l, riak_dt_lwwreg}, {assign, <<"a">>, 1}},
+        {update, {l2, riak_dt_lwwreg}, {assign, <<"b">>, 2}}]})),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 
 %% This fails on previous version of riak_dt_map
 assoc_test() ->
