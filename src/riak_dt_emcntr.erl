@@ -49,7 +49,7 @@
 -export([update/3, merge/2, equal/2]).
 -export([to_binary/1, from_binary/1]).
 -export([stats/1, stat/2]).
--export([parent_clock/2, update/4]).
+-export([parent_clock/2, update/4, is_operation/1]).
 
 %% EQC API
 -ifdef(EQC).

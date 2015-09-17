@@ -30,7 +30,7 @@
 -behaviour(riak_dt).
 
 -export([new/0, value/1, value/2, update/3, merge/2, equal/2, from_binary/1, to_binary/1, stats/1, stat/2]).
--export([update/4, parent_clock/2]).
+-export([update/4, parent_clock/2, is_operation/1]).
 
 -ifdef(EQC).
 -include_lib("eqc/include/eqc.hrl").
@@ -119,7 +119,6 @@ is_operation(Operation) ->
 %% EUnit tests
 %% ===================================================================
 -ifdef(TEST).
-
 -ifdef(EQC).
 
 %% EQC generator
@@ -185,5 +184,5 @@ is_operation_test() ->
     ?assertEqual(true, is_operation(enable)),
     ?assertEqual(false, is_operation(disable)),
     ?assertEqual(false, is_operation({anything, [1,2,3]})).
--endif.
+
 -endif.

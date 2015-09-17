@@ -29,7 +29,7 @@
 -export([ merge/2, equal/2, from_binary/1]).
 -export([to_binary/1, stats/1, stat/2]).
 -export([precondition_context/1]).
--export([parent_clock/2]).
+-export([parent_clock/2, is_operation/1]).
 
 -ifdef(EQC).
 -include_lib("eqc/include/eqc.hrl").

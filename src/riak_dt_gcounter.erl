@@ -37,7 +37,7 @@
 -module(riak_dt_gcounter).
 -behaviour(riak_dt).
 -export([new/0, new/2, value/1, value/2, update/3, merge/2, equal/2, to_binary/1, from_binary/1, stats/1, stat/2]).
--export([update/4, parent_clock/2]).
+-export([update/4, parent_clock/2, is_operation/1]).
 
 %% EQC API
 -ifdef(EQC).
