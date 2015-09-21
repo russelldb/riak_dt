@@ -27,10 +27,10 @@
 %% can only be incremented. Borrows liberally from argv0 and Justin Sheehy's vclock module
 %% in implementation.
 %%
-%% @see riak_kv_pncounter.erl for a counter that can be decremented
+%% See {@link riak_kv_pncounter} for a counter that can be decremented
 %%
 %% @reference Marc Shapiro, Nuno Preguiça, Carlos Baquero, Marek Zawirski (2011) A comprehensive study of
-%% Convergent and Commutative Replicated Data Types. http://hal.upmc.fr/inria-00555588/
+%% Convergent and Commutative Replicated Data Types. [http://hal.upmc.fr/inria-00555588/]
 %%
 %% @end
 
@@ -38,6 +38,8 @@
 -behaviour(riak_dt).
 -export([new/0, new/2, value/1, value/2, update/3, merge/2, equal/2, to_binary/1, from_binary/1, stats/1, stat/2]).
 -export([update/4, parent_clock/2, is_operation/1]).
+-export([to_binary/2]).
+-export([to_version/2]).
 
 %% EQC API
 -ifdef(EQC).
@@ -132,10 +134,25 @@ to_binary(GCnt) ->
     EntriesBin = term_to_binary(GCnt),
     <<?TAG:8/integer, ?V1_VERS:8/integer, EntriesBin/binary>>.
 
+-spec to_binary(Vers :: pos_integer(), gcounter()) -> {ok, binary()} | ?UNSUPPORTED_VERSION.
+to_binary(1, C) ->
+    B = to_binary(C),
+    {ok, B};
+to_binary(Vers, _C) ->
+    ?UNSUPPORTED_VERSION(Vers).
+
 %% @doc Decode binary G-Counter
--spec from_binary(binary()) -> gcounter().
+-spec from_binary(binary()) -> {ok, gcounter()} | ?INVALID_BINARY | ?UNSUPPORTED_VERSION.
 from_binary(<<?TAG:8/integer, ?V1_VERS:8/integer, EntriesBin/binary>>) ->
-    binary_to_term(EntriesBin).
+    {ok, binary_to_term(EntriesBin)};
+from_binary(<<?TAG:8/integer, Vers:8/integer, _EntriesBin/binary>>) ->
+    ?UNSUPPORTED_VERSION(Vers);
+from_binary(_B) ->
+    ?INVALID_BINARY.
+
+-spec to_version(pos_integer(), gcounter()) -> gcounter().
+to_version(_Version, C) ->
+    C.
 
 %% @doc The following operation verifies
 %%      that Operation is supported by this particular CRDT.
@@ -267,7 +284,7 @@ roundtrip_bin_test() ->
     {ok, GC3} = update(increment, "a4", GC2),
     {ok, GC4} = update({increment, 10000000000000000000000000000000000000000}, {complex, "actor", [<<"term">>, 2]}, GC3),
     Bin = to_binary(GC4),
-    Decoded = from_binary(Bin),
+    {ok, Decoded} = from_binary(Bin),
     ?assert(equal(GC4, Decoded)).
 
 lots_of_actors_test() ->
@@ -275,13 +292,13 @@ lots_of_actors_test() ->
                              ActorLen = crypto:rand_uniform(1, 1000),
                              Actor = crypto:rand_bytes(ActorLen),
                              Cnt = crypto:rand_uniform(1, 10000),
-                             {ok, Cnt2} = riak_dt_gcounter:update({increment, Cnt}, Actor, GCnt),
+                             {ok, Cnt2} =riak_dt_gcounter:update({increment, Cnt}, Actor, GCnt),
                              Cnt2
                      end,
                      new(),
                      lists:seq(1, 1000)),
     Bin = to_binary(GC),
-    Decoded = from_binary(Bin),
+    {ok, Decoded} = from_binary(Bin),
     ?assert(equal(GC, Decoded)).
 
 stat_test() ->
