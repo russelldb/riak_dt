@@ -248,7 +248,6 @@ from_binary(<<?TAG:8/integer, Vers:8/integer, _Bin/binary>>) ->
     ?UNSUPPORTED_VERSION(Vers);
 from_binary(_Bin) ->
     ?INVALID_BINARY.
-    binary_to_term(Bin).
 
 %% @doc The following operation verifies
 %%      that Operation is supported by this particular CRDT.
