@@ -255,8 +255,8 @@ is_operation(Operation) ->
             true;
         {remove_all, Elems} ->
             is_list(Elems);
-        {remove, Number} ->
-            is_integer(Number);
+        {remove, _} ->
+            true;
         {update, UpdatesList} ->
             case is_list(UpdatesList) of
                 true ->
