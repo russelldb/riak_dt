@@ -30,7 +30,7 @@
 -behaviour(riak_dt).
 
 -export([new/0, value/1, value/2, update/3, merge/2, equal/2, from_binary/1, to_binary/1, stats/1, stat/2]).
--export([update/4, parent_clock/2]).
+-export([update/4, parent_clock/2, is_operation/1]).
 -export([to_binary/2]).
 -export([to_version/2]).
 
@@ -118,12 +118,21 @@ flag_or(_, on) ->
 flag_or(off, off) ->
     off.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        enable ->
+            true;
+        _ ->
+            false
+    end.
 
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
 -ifdef(TEST).
-
 -ifdef(EQC).
 
 %% EQC generator
@@ -184,4 +193,10 @@ stat_test() ->
     ?assertEqual([], stats(F1)),
     ?assertEqual(undefined, stat(actor_count, F1)),
     ?assertEqual(undefined, stat(max_dot_length, F1)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation(enable)),
+    ?assertEqual(false, is_operation(disable)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
+
 -endif.

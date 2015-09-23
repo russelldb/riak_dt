@@ -82,6 +82,7 @@
 -export([to_binary/1, from_binary/1]).
 -export([to_binary/2]).
 -export([precondition_context/1, stats/1, stat/2]).
+-export([is_operation/1]).
 -export([parent_clock/2]).
 -export([to_version/2]).
 
@@ -508,6 +509,9 @@ from_binary(<<?TAG:8/integer, Vers:8/integer, _B/binary>>) ->
     ?UNSUPPORTED_VERSION(Vers);
 from_binary(_B) ->
     ?INVALID_BINARY.
+
+is_operation(Operation) ->
+    riak_dt_orset:is_operation(Operation).
 
 %% ===================================================================
 %% EUnit tests

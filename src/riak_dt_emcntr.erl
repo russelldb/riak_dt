@@ -1,4 +1,3 @@
-%% -*- coding: utf-8 -*-
 %% -------------------------------------------------------------------
 %%
 %% riak_dt_emcntr: A convergent, replicated, state based PN counter,
@@ -53,6 +52,7 @@
 -export([stats/1, stat/2]).
 -export([parent_clock/2, update/4]).
 -export([to_version/2]).
+-export([is_operation/1]).
 
 %% EQC API
 -ifdef(EQC).
@@ -248,6 +248,12 @@ from_binary(<<?TAG:8/integer, Vers:8/integer, _Bin/binary>>) ->
     ?UNSUPPORTED_VERSION(Vers);
 from_binary(_Bin) ->
     ?INVALID_BINARY.
+
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    riak_dt_pncounter:is_operation(Operation).
 
 -spec to_version(pos_integer(), emcntr()) -> emcntr().
 to_version(_Version, Cntr) ->

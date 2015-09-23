@@ -1,4 +1,3 @@
-%% -*- coding: utf-8 -*-
 %% -------------------------------------------------------------------
 %%
 %% riak_dt_gcounter: A state based, grow only, convergent counter
@@ -38,7 +37,7 @@
 -module(riak_dt_gcounter).
 -behaviour(riak_dt).
 -export([new/0, new/2, value/1, value/2, update/3, merge/2, equal/2, to_binary/1, from_binary/1, stats/1, stat/2]).
--export([update/4, parent_clock/2]).
+-export([update/4, parent_clock/2, is_operation/1]).
 -export([to_binary/2]).
 -export([to_version/2]).
 
@@ -154,6 +153,19 @@ from_binary(_B) ->
 -spec to_version(pos_integer(), gcounter()) -> gcounter().
 to_version(_Version, C) ->
     C.
+
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        increment ->
+            true;
+        {increment, Number} ->
+            is_integer(Number) andalso (Number >= 0);
+        _ ->
+            false
+    end.
 
 %% ===================================================================
 %% EUnit tests
@@ -297,5 +309,12 @@ stat_test() ->
     ?assertEqual([{actor_count, 3}], stats(GC3)),
     ?assertEqual(3, stat(actor_count, GC3)),
     ?assertEqual(undefined, stat(field_count, GC3)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({increment, 50})),
+    ?assertEqual(true, is_operation(increment)),
+    ?assertEqual(false, is_operation({decrement, 50})),
+    ?assertEqual(false, is_operation(decrement)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 
 -endif.

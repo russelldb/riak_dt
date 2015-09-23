@@ -32,6 +32,7 @@
 -export([precondition_context/1]).
 -export([parent_clock/2]).
 -export([to_version/2]).
+-export([is_operation/1]).
 
 -ifdef(EQC).
 -include_lib("eqc/include/eqc.hrl").
@@ -206,6 +207,19 @@ precondition_context({Clock, _Flag, _Deferred}) ->
 to_version(_Version, Flag) ->
     Flag.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        disable ->
+            true;
+        enable ->
+            true;
+        _ ->
+            false
+    end.
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
@@ -320,4 +334,9 @@ stat_test() ->
     ?assertEqual([{actor_count, 3}, {dot_length, 0}, {deferred_length, 0}], stats(F4)),
     ?assertEqual(3, stat(actor_count, F4)),
     ?assertEqual(undefined, stat(max_dot_length, F4)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation(enable)),
+    ?assertEqual(true, is_operation(disable)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 -endif.

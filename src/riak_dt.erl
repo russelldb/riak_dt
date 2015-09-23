@@ -22,8 +22,13 @@
 
 -module(riak_dt).
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 -export([to_binary/1, from_binary/1, dict_to_orddict/1]).
 -export_type([actor/0, dot/0, crdt/0, context/0]).
+-export([is_riak_dt/1]).
 
 -include("riak_dt.hrl").
 -include("riak_dt_tags.hrl").
@@ -58,8 +63,14 @@
 
 -callback stats(crdt()) -> [{atom(), number()}].
 -callback stat(atom(), crdt()) -> number() | undefined.
+-callback is_operation(term()) -> boolean().
 
 -callback to_version(pos_integer(), crdt()) -> crdt().
+
+-define(RIAK_DT_CRDTS, [riak_dt_disable_flag, riak_dt_emcntr,
+    riak_dt_enable_flag, riak_dt_gcounter, riak_dt_gset, riak_dt_lwwreg,
+    riak_dt_map, riak_dt_od_flag, riak_dt_oe_flag, riak_dt_orset,
+    riak_dt_orswot, riak_dt_pncounter, riak_dt_vclock, riak_dt_mvreg]).
 
 -ifdef(EQC).
 % Extra callbacks for any crdt_statem_eqc tests
@@ -86,3 +97,15 @@ from_binary(Binary) ->
 -spec dict_to_orddict(riak_dt_dict()) -> orddict:orddict().
 dict_to_orddict(Dict) ->
     lists:sort(dict:to_list(Dict)).
+
+%%  @doc checks that a given atom is a riak_dt CRDT.
+-spec is_riak_dt(term()) -> boolean().
+is_riak_dt(Term) ->
+    is_atom(Term) andalso lists:member(Term, ?RIAK_DT_CRDTS).
+
+-ifdef(TEST).
+is_riak_dt_test() ->
+    ?assertEqual(true, is_riak_dt(riak_dt_pncounter)),
+    ?assertEqual(false, is_riak_dt(whatever)).
+
+-endif.

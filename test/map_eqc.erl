@@ -544,7 +544,7 @@ field_not_present(Field, {Map, _Model}) ->
           %% removal
           tombstones=orddict:new() :: orddict:orddict(),
           %% for embedded context operations
-          clock=riak_dt_vclock:fresh() :: riak_dt_vclock:vclock()
+          clock= riak_dt_vclock:fresh() :: riak_dt_vclock:vclock()
          }).
 
 -type map_model() :: #model{}.

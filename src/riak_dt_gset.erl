@@ -1,4 +1,3 @@
-%% -*- coding: utf-8 -*-
 %% -------------------------------------------------------------------
 %%
 %% riak_dt_gset: A convergent, replicated, state based grow only set
@@ -39,6 +38,7 @@
 -export([update/4, parent_clock/2]).
 -export([to_binary/2]).
 -export([to_version/2]).
+-export([is_operation/1]).
 
 -ifdef(EQC).
 -include_lib("eqc/include/eqc.hrl").
@@ -139,6 +139,18 @@ stat(max_element_size, GSet) ->
       end, 0, GSet);
 stat(_, _) -> undefined.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        {add_all, Elems} ->
+            is_list(Elems);
+        {add, _} ->
+            true;
+        _ ->
+            false
+    end.
 -spec to_version(pos_integer(), gset()) -> gset().
 to_version(_Version, Set) ->
     Set.
@@ -193,5 +205,15 @@ eqc_state_value(Dict) ->
     sets:to_list(S).
 
 -endif.
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({add, 50})),
+    ?assertEqual(true, is_operation({add, atom})),
+    ?assertEqual(true, is_operation({add_all, [50, atom, 60]})),
+    ?assertEqual(false, is_operation({add_all, not_a_list})),
+    ?assertEqual(false, is_operation(increment)),
+    ?assertEqual(false, is_operation({decrement, 50})),
+    ?assertEqual(false, is_operation(decrement)),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 
 -endif.

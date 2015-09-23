@@ -33,7 +33,7 @@
 
 -export([new/0, value/1, value/2, update/3, merge/2,
          equal/2, to_binary/1, from_binary/1, stats/1, stat/2]).
--export([parent_clock/2, update/4]).
+-export([parent_clock/2, update/4, is_operation/1]).
 -export([to_binary/2]).
 -export([to_version/2]).
 
@@ -160,6 +160,19 @@ from_binary(_B) ->
 to_version(_Version, LWW) ->
     LWW.
 
+%% @doc The following operation verifies
+%%      that Operation is supported by this particular CRDT.
+-spec is_operation(term()) -> boolean().
+is_operation(Operation) ->
+    case Operation of
+        {assign, _} ->
+            true;
+        {assign, _, Number} ->
+            (is_integer(Number) andalso (Number >= 0));
+        _ ->
+            false
+    end.
+
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
@@ -262,4 +275,11 @@ stat_test() ->
     ?assertEqual([{value_size, 15}], stats(LWW1)),
     ?assertEqual(15, stat(value_size, LWW1)),
     ?assertEqual(undefined, stat(actor_count, LWW1)).
+
+is_operation_test() ->
+    ?assertEqual(true, is_operation({assign, value})),
+    ?assertEqual(true, is_operation({assign, something, 20})),
+    ?assertEqual(false, is_operation({assign, something, some_value})),
+    ?assertEqual(false, is_operation({add, atom})),
+    ?assertEqual(false, is_operation({anything, [1,2,3]})).
 -endif.
