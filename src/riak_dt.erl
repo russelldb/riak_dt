@@ -101,7 +101,7 @@ dict_to_orddict(Dict) ->
 %%  @doc checks that a given atom is a riak_dt CRDT.
 -spec is_riak_dt(term()) -> boolean().
 is_riak_dt(Term) ->
-    is_atom(Term) and lists:member(Term, ?RIAK_DT_CRDTS).
+    is_atom(Term) andalso lists:member(Term, ?RIAK_DT_CRDTS).
 
 -ifdef(TEST).
 is_riak_dt_test() ->

@@ -269,7 +269,7 @@ is_operation(Operation) ->
                 decrement ->
                     true;
                 {decrement, Number} ->
-                    is_integer(Number) and (Number >= 0);
+                    is_integer(Number) andalso (Number >= 0);
                 _ ->
                     false
             end

@@ -816,7 +816,7 @@ check_operation(Op) ->
 
 -spec is_crdt_op(atom(), term()) -> boolean().
 is_crdt_op(CRDTModule, Op) ->
-    riak_dt:is_riak_dt(CRDTModule) and CRDTModule:is_operation(Op).
+    riak_dt:is_riak_dt(CRDTModule) andalso CRDTModule:is_operation(Op).
 
 
 %% ===================================================================

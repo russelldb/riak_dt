@@ -162,7 +162,7 @@ is_operation(Operation) ->
         increment ->
             true;
         {increment, Number} ->
-            is_integer(Number) and (Number >= 0);
+            is_integer(Number) andalso (Number >= 0);
         _ ->
             false
     end.
