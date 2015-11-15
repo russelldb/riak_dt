@@ -2,7 +2,7 @@
 
 -compile(export_all).
 
--define(INT, 64).
+-define(INT, 32).
 
 %% If you always use N bytes for an actor ID, and then have 1 64-bit
 %% integer as the counter
@@ -14,8 +14,7 @@ increment(Actor, <<Len:32/integer, Rest/binary>>) ->
     <<Len:32/integer, VV/binary>>.
 
 increment(Len, Actor, <<>>, <<>>, 0) ->
-    <<Actor:Len/binary,
-              1:?INT/integer>>;
+    <<Actor:Len/binary, 1:?INT/integer>>;
 increment(Len, Actor, Bin, Preq, LenPreq) ->
     case Bin of
         <<>> ->

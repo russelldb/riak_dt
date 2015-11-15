@@ -3,7 +3,7 @@
 -compile(export_all).
 
 increment() ->
-    Actors = [crypto:rand_bytes(24) || _ <- lists:seq(1, 20)],
+    Actors = [crypto:rand_bytes(24) || _ <- lists:seq(1, 50)],
     Events = 100000,
     increment(Actors, Events, binary_vv:new(24), term_to_binary(riak_dt_vclock:fresh()), {[], []}).
 
