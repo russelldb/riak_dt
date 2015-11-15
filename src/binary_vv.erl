@@ -1,31 +1,24 @@
 -module(binary_vv).
 
--compile(export_all).
+%%-compile(export_all).
 
--define(INT, 64).
+-export([new/0, increment/2, to_vv/1, from_vv/1, descends/2, dominates/2, merge/1]).
+
+-define(INT, 32).
 
 %% If you always use N bytes for an actor ID, and then have 1 64-bit
 %% integer as the counter
-new(Size) ->
-    <<Size:32/integer>>.
+new() ->
+    <<>>.
 
-increment(Actor, <<Len:32/integer, Rest/binary>>) ->
-    VV = increment(Len, Actor, Rest, <<>>, 0),
-    <<Len:32/integer, VV/binary>>.
-
-increment(Len, Actor, <<>>, <<>>, 0) ->
-    <<Actor:Len/binary,
-              1:?INT/integer>>;
-increment(Len, Actor, Bin, Preq, LenPreq) ->
-    case Bin of
-        <<>> ->
-            <<Preq:LenPreq/binary, Actor:Len/binary, 1:?INT/integer>>;     
-        <<Actor:Len/binary, Counter:?INT/integer, Rest/binary>> ->
-            Counter2 = Counter+1,
-            <<Preq:LenPreq/binary, Actor:Len/binary, Counter2:?INT/integer, Rest/binary>>;
-        <<Other:Len/binary, OtherC:?INT/integer, OtherRest/binary>> ->
-            increment(Len, Actor, OtherRest, <<Other:Len/binary, OtherC:?INT/integer, Preq/binary>>, LenPreq+Len+(?INT div 8))
-    end.
+increment(Actor, BVV) ->
+    {Ctr, NewBVV} = case take_entry(Actor, BVV) of
+                      false ->
+                          {1, BVV};
+                      {C, BVV1}  ->
+                          {C + 1, BVV1}
+                  end,
+    <<Actor:24/binary, Ctr:?INT/integer, NewBVV/binary>>.
 
 to_vv(<<Size:32/integer, Rest/binary>>) ->
     to_vv(Size, Rest).
@@ -66,16 +59,21 @@ descends(Size, A, B) ->
             (CntrA >= CntrB) andalso descends(Size, RestA, RestB)
     end.
 
-take_entry(_Size, _Actor, <<>>) ->
-    {<<>>, 0};
-take_entry(Size, Actor, Bin) ->
-    case Bin of
-        <<Actor:Size/binary, Counter:?INT/integer, Rest/binary>> ->
-            {Rest, Counter};
-        <<Other:Size/binary, OtherC:?INT/integer, OtherRest/binary>> ->
-            {Rest, Counter} = take_entry(Size, Actor, OtherRest),
-            {<<Other:Size/binary, OtherC:?INT/integer, Rest/binary>>, Counter}
-    end.
+take_entry(_Actor, <<>>) ->
+    false;
+take_entry(Actor, Bin) ->
+    take_entry(Bin, Actor, <<>>).
+
+take_entry(<<>>,_Actor, _Acc) ->
+    false;
+take_entry(<<Actor:24/binary, Rest/binary>>, Actor, Acc)  ->
+    {Counter, Rest2} =  counter(Rest),
+    {Counter, <<Rest2/binary, Acc/binary>>};
+take_entry(<<Other:24/binary, OtherC:?INT/integer, OtherRest/binary>>, Actor, Acc) ->
+    take_entry(OtherRest, Actor, <<Other:24/binary, OtherC:?INT/integer, Acc/binary>>).
+
+counter(<<Counter:?INT/integer, Rest/binary>>) ->
+    {Counter, Rest}.
 
 dominates(A, B) ->
     descends(A, B) andalso not descends(B, A).

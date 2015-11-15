@@ -5,7 +5,7 @@
 increment() ->
     Actors = [crypto:rand_bytes(24) || _ <- lists:seq(1, 20)],
     Events = 100000,
-    increment(Actors, Events, binary_vv:new(24), term_to_binary(riak_dt_vclock:fresh()), {[], []}).
+    increment(Actors, Events, binary_vv:new(), term_to_binary(riak_dt_vclock:fresh()), {[], []}).
 
 increment(_Actors, 0, _BVV, _VC, Times) ->
     stats(Times);
