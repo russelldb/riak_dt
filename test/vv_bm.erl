@@ -3,9 +3,11 @@
 -compile(export_all).
 
 increment() ->
-    Actors = [crypto:rand_bytes(24) || _ <- lists:seq(1, 50)],
-    Events = 100000,
-    increment(Actors, Events, binary_vv:new(), term_to_binary(riak_dt_vclock:fresh()), {[], []}).
+    increment(50, 10000).
+
+increment(ActorCnt, EventCnt) ->
+    Actors = [crypto:rand_bytes(24) || _ <- lists:seq(1, ActorCnt)],
+    increment(Actors, EventCnt, binary_vv:new(), term_to_binary(riak_dt_vclock:fresh()), {[], []}).
 
 increment(_Actors, 0, _BVV, _VC, Times) ->
     stats(Times);
@@ -15,8 +17,7 @@ increment(Actors, Events, BVV, VC, Times) ->
     F = fun() -> VC0 = binary_to_term(VC), VC1 = riak_dt_vclock:increment(Actor, VC0), term_to_binary(VC1) end,
     {VCTime, NewVC} = timer:tc(F),%%riak_dt_vclock, increment, [Actor, VC]),
     increment(Actors, Events - 1, NewBVV, NewVC, update_times(BVVTime, VCTime, Times)).
-    
-    
+
 random_actor([Actor]) ->
     Actor;
 random_actor(Actors) ->
