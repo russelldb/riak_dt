@@ -1,7 +1,7 @@
 -module(map_size).
 
--compile([export_all]).
-
+-export([get_mods/0]).
+-export([go/2]).
 %% Ugly hack on ugly hack. Why is this here? A random_seed tuple is
 %% added to the process state when we invoke random:seed/1, and we
 %% also use the process state to store the mods we want to test.
@@ -16,7 +16,7 @@ go(Mods, {_A, _B, _C}=Seed) ->
     erase(),
     lists:foreach(fun(Mod) -> put(Mod, Mod:new()) end,
                   Mods),
-    random:seed(Seed),
+    rand:seed(Seed),
     add_large_set_field(),
     lists:foreach(fun(List) -> merge(List) end,
                   replicate_and_add_element()),
@@ -25,7 +25,7 @@ go(Mods, {_A, _B, _C}=Seed) ->
     print_sizes().
 
 rand_bytes(N) ->
-    list_to_binary([random:uniform(255) || _X <- lists:seq(1, N)]).
+    list_to_binary([rand:uniform(255) || _X <- lists:seq(1, N)]).
 
 add_large_set_field() ->
     Set = gen_set(),
@@ -36,7 +36,7 @@ add_large_set_field() ->
      end || {Mod, State} <- get_mods()].
 
 gen_set() ->
-    [rand_bytes(N) || N <- [10 + random:uniform(90) || _X <- lists:seq(1, 50 + random:uniform(150))]].
+    [rand_bytes(N) || N <- [10 + rand:uniform(90) || _X <- lists:seq(1, 50 + rand:uniform(150))]].
 
 replicate_and_add_element() ->
     E = rand_bytes(10),

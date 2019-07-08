@@ -36,7 +36,7 @@
 -ifdef(EQC).
 -include_lib("eqc/include/eqc.hrl").
 -export([gen_op/0, gen_op/1, init_state/0, update_expected/3, eqc_state_value/1, generate/0, size/1]).
--define(NUMTESTS, 1000).
+-export([prop_crdt_converge/0, prop_crdt_bin_roundtrip/0]).
 -endif.
 
 -ifdef(TEST).
@@ -128,12 +128,12 @@ merge({LHSClock, LHSDots, LHSDeferred}, {RHSClock, RHSDots, RHSDeferred}) ->
     %% drop all the RHS dots that dominated by the LHS clock
     %% keep all the dots that are in both
     %% save value as value of flag
-    CommonDots = sets:intersection(sets:from_list(LHSDots), sets:from_list(RHSDots)),
-    LHSUnique = sets:to_list(sets:subtract(sets:from_list(LHSDots), CommonDots)),
-    RHSUnique = sets:to_list(sets:subtract(sets:from_list(RHSDots), CommonDots)),
+    CommonDots = ordsets:intersection(ordsets:from_list(LHSDots), ordsets:from_list(RHSDots)),
+    LHSUnique = ordsets:to_list(ordsets:subtract(ordsets:from_list(LHSDots), CommonDots)),
+    RHSUnique = ordsets:to_list(ordsets:subtract(ordsets:from_list(RHSDots), CommonDots)),
     LHSKeep = riak_dt_vclock:subtract_dots(LHSUnique, RHSClock),
     RHSKeep = riak_dt_vclock:subtract_dots(RHSUnique, LHSClock),
-    Flag = riak_dt_vclock:merge([sets:to_list(CommonDots), LHSKeep, RHSKeep]),
+    Flag = riak_dt_vclock:merge([ordsets:to_list(CommonDots), LHSKeep, RHSKeep]),
     Deferred = ordsets:union(LHSDeferred, RHSDeferred),
 
     apply_deferred(NewClock, Flag, Deferred).
@@ -212,11 +212,11 @@ to_version(_Version, Flag) ->
 -ifdef(TEST).
 
 -ifdef(EQC).
-eqc_value_test_() ->
-    crdt_statem_eqc:run(?MODULE, ?NUMTESTS).
+prop_crdt_converge() ->
+     crdt_statem_eqc:prop_converge(?MODULE).
 
-bin_roundtrip_test_() ->
-    crdt_statem_eqc:run_binary_rt(?MODULE, ?NUMTESTS).
+prop_crdt_bin_roundtrip() ->
+    crdt_statem_eqc:prop_bin_roundtrip(?MODULE).
 
 % EQC generator
 gen_op(_Size) ->
